@@ -65,8 +65,21 @@ jobs:
       run: |
         set -o pipefail
         
+        # 列出所有可用的 schemes
+        echo "Available schemes:"
+        xcodebuild -workspace Telegram-Mac.xcworkspace -list
+        
+        # 尝试使用第一个可用的 scheme
+        SCHEME=$(xcodebuild -workspace Telegram-Mac.xcworkspace -list | grep -A 100 "Schemes:" | grep -v "Schemes:" | head -n 1 | xargs)
+        echo "Using scheme: $SCHEME"
+        
+        if [ -z "$SCHEME" ]; then
+          echo "No scheme found, trying default build..."
+          SCHEME="Telegram"
+        fi
+        
         xcodebuild -workspace Telegram-Mac.xcworkspace \
-                   -scheme Telegram-Mac \
+                   -scheme "$SCHEME" \
                    -configuration Release \
                    -derivedDataPath ./build \
                    -allowProvisioningUpdates \
