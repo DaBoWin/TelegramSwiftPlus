@@ -68,17 +68,15 @@ jobs:
           echo "mozjpeg CMakeLists.txt fixed"
         fi
         
-        # 修复 WebRTC (tgcalls) 和 FFmpeg
-        echo "Fixing tgcalls and tg_owt for WebRTC..."
-        rm -rf submodules/tgcalls
-        git clone https://github.com/TelegramMessenger/tgcalls submodules/tgcalls
+        # 修复 FFmpeg
+        echo "Fixing FFmpeg version..."
+        sed -i '' 's/FF_VERSION="7.1"/FF_VERSION="7.1.1"/' core-xprojects/ffmpeg/ffmpeg/build.sh
         
+        # 修复 tg_owt 子模块未初始化的可能
+        echo "Initializing nested WebRTC submodules..."
         cd submodules/tg_owt
         git submodule update --init --recursive
         cd ../..
-        
-        echo "Fixing FFmpeg version..."
-        sed -i '' 's/FF_VERSION="7.1"/FF_VERSION="7.1.1"/' core-xprojects/ffmpeg/ffmpeg/build.sh
       
         # 确保必要的目录存在
         mkdir -p "./submodules/telegram-ios/submodules/TelegramCore/FlatSerialization/Sources"
