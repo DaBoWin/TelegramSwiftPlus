@@ -25,7 +25,12 @@ jobs:
     
     - name: Install dependencies
       run: |
-        brew install cmake ninja openssl@1.1 zlib autoconf libtool automake yasm pkg-config
+        brew install cmake ninja openssl@1.1 zlib autoconf libtool automake yasm pkg-config nasm meson
+    
+    - name: Download Metal Toolchain
+      run: |
+        echo "Downloading Metal Toolchain..."
+        xcodebuild -downloadComponent MetalToolchain || echo "Metal Toolchain download failed, continuing..."
     
     - name: Cache build artifacts
       uses: actions/cache@v3
