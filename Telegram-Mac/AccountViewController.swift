@@ -13,7 +13,7 @@ import Localization
 import Postbox
 import SwiftSignalKit
 
-let normalAccountsLimit: Int = 3
+let normalAccountsLimit: Int = 30
 
 
 
@@ -548,12 +548,7 @@ private func accountInfoEntries(peerView:PeerView, context: AccountContext, acco
     }
     
     let accountsLimit: Int = normalAccountsLimit
-    let effectiveLimit: Int
-    if context.premiumIsBlocked {
-        effectiveLimit = accountsLimit
-    } else {
-        effectiveLimit = accountsLimit + 1
-    }
+    let effectiveLimit: Int = accountsLimit
 //    let hasPremium = accounts.filter({ $0.peer.isPremium })
 //    let normalCount = accounts.filter({ !$0.peer.isPremium }).count
 
@@ -972,18 +967,9 @@ class AccountViewController : TelegramGenericViewController<AccountControllerVie
             }
         }, giftPremium: {
             multigift(context: context)
-        }, addAccount: { accounts in
+        },         addAccount: { accounts in
             let testingEnvironment = NSApp.currentEvent?.modifierFlags.contains(.command) == true
-            let hasPremium = accounts.contains(where: { $0.peer.isPremium })
-            if accounts.count == normalAccountsLimit {
-                if hasPremium {
-                    context.sharedContext.beginNewAuth(testingEnvironment: testingEnvironment)
-                } else {
-                    showPremiumLimit(context: context, type: .accounts(accounts.count))
-                }
-            } else {
-                context.sharedContext.beginNewAuth(testingEnvironment: testingEnvironment)
-            }
+            context.sharedContext.beginNewAuth(testingEnvironment: testingEnvironment)
         }, setStatus: { control, user in
             setStatus(control, user)
         }, runStatusPopover: { [weak self] in
