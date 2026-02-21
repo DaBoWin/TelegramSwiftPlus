@@ -45,6 +45,14 @@ jobs:
         # 确保必要的目录存在
         mkdir -p "./submodules/telegram-ios/submodules/TelegramCore/FlatSerialization/Sources"
         
+        # 修复 Sparkle 子模块的 InfoPlist.strings 问题
+        SPARKLE_STRINGS="./submodules/Sparkle/TestApplication/he.lproj/InfoPlist.strings"
+        if [ ! -f "$SPARKLE_STRINGS" ]; then
+          echo "Creating missing Sparkle InfoPlist.strings file..."
+          mkdir -p "$(dirname "$SPARKLE_STRINGS")"
+          touch "$SPARKLE_STRINGS"
+        fi
+        
         # 检查是否需要重新编译框架
         if [ ! -d "./core-xprojects/OpenH264/build" ]; then
           echo "Frameworks not found, building..."
