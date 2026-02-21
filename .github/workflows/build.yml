@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+    timeout-minutes: 180  # 增加超时到 3 小时
     
     steps:
     - name: Checkout code
@@ -47,32 +48,33 @@ jobs:
         # 设置环境变量
         export MACOSX_DEPLOYMENT_TARGET=10.13
         
+        # 修复 mozjpeg CMake 版本问题
+        echo "Fixing mozjpeg CMakeLists.txt..."
+        MOZJPEG_CMAKE="./submodules/telegram-ios/third-party/mozjpeg/mozjpeg/CMakeLists.txt"
+        if [ -f "$MOZJPEG_CMAKE" ]; then
+          sed -i '' 's/cmake_minimum_required(VERSION 2.8.12)/cmake_minimum_required(VERSION 3.5)/' "$MOZJPEG_CMAKE"
+          echo "mozjpeg CMakeLists.txt fixed"
+        fi
+      
         # 确保必要的目录存在
         mkdir -p "./submodules/telegram-ios/submodules/TelegramCore/FlatSerialization/Sources"
         
-        # 修复 Sparkle 子模块的 InfoPlist.strings 问题
-        SPARKLE_STRINGS="./submodules/Sparkle/TestApplication/he.lproj/InfoPlist.strings"
-        if [ ! -f "$SPARKLE_STRINGS" ]; then
-          echo "Creating missing Sparkle InfoPlist.strings file..."
-          mkdir -p "$(dirname "$SPARKLE_STRINGS")"
-          touch "$SPARKLE_STRINGS"
+        # 按照官方文档步骤 4: 设置 rebuild 为 yes（强制重新构建所有框架）
+        echo "yes" > ./scripts/rebuild
+        
+        # 按照官方文档步骤 5: 运行配置脚本构建所有框架（包括 WebRTC）
+        echo "Building frameworks (this will take 1-2 hours)..."
+        sh ./scripts/configure_frameworks.sh 2>&1 | tee framework_build.log
+        
+        # 检查关键框架是否构建成功
+        if [ ! -d "./submodules/tgcalls/SharedHeaders/webrtc" ]; then
+          echo "ERROR: WebRTC headers not found after framework build!"
+          echo "Showing last 200 lines of build log:"
+          tail -n 200 framework_build.log
+          exit 1
         fi
         
-        # 检查是否需要重新编译框架
-        if [ ! -d "./core-xprojects/OpenH264/build" ]; then
-          echo "Frameworks not found, building..."
-          echo "yes" > ./scripts/rebuild
-          
-          # 运行配置脚本
-          sh ./scripts/configure_frameworks.sh 2>&1 | tee framework_build.log || {
-            echo "Framework build failed, showing last 50 lines:"
-            tail -n 50 framework_build.log
-            echo "Trying to continue anyway..."
-          }
-        else
-          echo "Using cached frameworks"
-          echo "no" > ./scripts/rebuild
-        fi
+        echo "Frameworks built successfully"
     
     - name: Build with Xcode
       run: |
