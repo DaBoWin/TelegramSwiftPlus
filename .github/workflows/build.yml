@@ -132,7 +132,6 @@ jobs:
                    ENABLE_BITCODE=NO \
                    MTL_ENABLE_DEBUG_INFO=NO \
                    MTLLINKER_FLAGS="" \
-                   SWIFT_ENABLE_EXPLICIT_MODULES=NO \
                    -skipPackagePluginValidation \
                    -skipMacroValidation \
                    clean build 2>&1 | tee xcodebuild.log | xcpretty || {
